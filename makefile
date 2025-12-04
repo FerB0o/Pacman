@@ -1,29 +1,34 @@
 # Directorios de origen y destino
 SRC_DIR := src
 BIN_DIR := bin
-
-SFML := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lbox2d
+INCLUDES := -IC:/SFML/include -Iinclude
+LIBS := -LC:/SFML/lib -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 
 # Obtener todos los archivos .cpp en el directorio de origen
 CPP_FILES := $(wildcard $(SRC_DIR)/*.cpp)
+OBJ_FILES := $(CPP_FILES:.cpp=.o)
 
-# Generar los nombres de los archivos .exe en el directorio de destino
-EXE_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.exe,$(CPP_FILES))
+# Nombre del ejecutable final
+TARGET := $(BIN_DIR)/Pacman.exe
 
-# Regla para compilar cada archivo .cpp y generar el archivo .exe correspondiente
-$(BIN_DIR)/%.exe: $(SRC_DIR)/%.cpp
-	g++ $< -o $@ $(SFML) -Iinclude
+# Compilación del ejecutable
+$(TARGET): $(OBJ_FILES)
+	mkdir -p $(BIN_DIR)
+	$(CXX) $(OBJ_FILES) -o $(TARGET) $(LIBS)
 
-# Regla por defecto para compilar todos los archivos .cpp
-all: $(EXE_FILES)
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
-# Regla para ejecutar cada archivo .exe
-run%: $(BIN_DIR)/%.exe
-	./$<
+# Regla por defecto
+all: $(TARGET)
 
-# Regla para limpiar los archivos generados
+# Limpiar los archivos binarios generados
 clean:
-	rm -f $(EXE_FILES)
+	if exist "$(SRC_DIR)\*.o" del /Q "$(SRC_DIR)\*.o"
+	if exist "$(BIN_DIR)\*.exe" del /Q "$(BIN_DIR)\*.exe"
 
-.PHONY: all clean
-.PHONY: run-%
+# Regla para ejecutar el juego
+run: $(TARGET)
+	$(TARGET)
+ 
+.PHONY: all clean run
