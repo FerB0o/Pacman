@@ -1,4 +1,4 @@
-// === src/juego.cpp ===
+// === src/Juego.cpp ===
 #include "../include/ghost.h" 
 #include "../include/pacman.h"
 #include "../include/Juego.h"
@@ -6,18 +6,20 @@
 #include <SFML/Audio.hpp>
 #include <iostream>
 
-
-bool puedeMover(float x, float y, int dx, int dy, int tileSize, const int mapa[15][20]) {
+// --- CORRECCIÓN 1: Actualizar dimensión a [21][21] ---
+bool puedeMover(float x, float y, int dx, int dy, int tileSize, const int mapa[21][21]) {
     int fila = (y + dy * tileSize) / tileSize;
     int col = (x + dx * tileSize) / tileSize;
-    return fila >= 0 && fila < 15 && col >= 0 && col < 20 && mapa[fila][col] == 0;
+    // --- CORRECCIÓN 2: Actualizar límites a 21 ---
+    return fila >= 0 && fila < 21 && col >= 0 && col < 21 && mapa[fila][col] == 0;
 }
 
 bool estaCentradoEnTile(sf::Vector2f pos, int tileSize) {
     return static_cast<int>(pos.x) % tileSize == 0 && static_cast<int>(pos.y) % tileSize == 0;
 }
 
-void moverPorBuffer(sf::Sprite& sprite, Direccion& actual, Direccion& buffer, int tileSize, const int mapa[15][20], float velocidad) {
+// --- CORRECCIÓN 3: Actualizar dimensión a [21][21] ---
+void moverPorBuffer(sf::Sprite& sprite, Direccion& actual, Direccion& buffer, int tileSize, const int mapa[21][21], float velocidad) {
     sf::Vector2f pos = sprite.getPosition();
 
     if (estaCentradoEnTile(pos, tileSize)) {
@@ -31,11 +33,11 @@ void moverPorBuffer(sf::Sprite& sprite, Direccion& actual, Direccion& buffer, in
     sprite.move(actual.dx * velocidad, actual.dy * velocidad);
 }
 
-//sf::Sprite& Pacman::getSprite() { return sprite; }
-//sf::Sprite& Ghost::getSprite() { return sprite; }
-
 void GameManager::run() {
-    sf::RenderWindow window(sf::VideoMode(640, 480), "Pakman");
+    // Definimos constantes antes de usar la ventana
+    const int filas = 21, columnas = 21, tileSize = 32;
+
+    sf::RenderWindow window(sf::VideoMode(columnas * tileSize, filas * tileSize), "PACMAN");
     window.setFramerateLimit(60);
 
     // Pantalla de inicio
@@ -44,7 +46,11 @@ void GameManager::run() {
         std::cerr << "No se pudo cargar la imagen de inicio." << std::endl;
     }
     sf::Sprite inicioSprite(inicioTexture);
-    inicioSprite.setScale(640.0f / inicioTexture.getSize().x, 480.0f / inicioTexture.getSize().y);
+    // Ajustar escala de inicio al nuevo tamaño de ventana (672x672 aprox)
+    inicioSprite.setScale(
+        (float)(columnas * tileSize) / inicioTexture.getSize().x, 
+        (float)(filas * tileSize) / inicioTexture.getSize().y
+    );
 
     // Sonido de inicio
     sf::SoundBuffer inicioBuffer;
@@ -73,25 +79,35 @@ void GameManager::run() {
     sf::Texture fondoTexture;
     fondoTexture.loadFromFile("assets/images/background.png");
     sf::Sprite fondo(fondoTexture);
-    fondo.setScale(640.0f / fondoTexture.getSize().x, 480.0f / fondoTexture.getSize().y);
+    // Ajustar fondo al nuevo tamaño
+    fondo.setScale(
+        (float)(columnas * tileSize) / fondoTexture.getSize().x, 
+        (float)(filas * tileSize) / fondoTexture.getSize().y
+    );
 
-    const int filas = 15, columnas = 20, tileSize = 32;
+    // MAPA NUEVO 21x21
     int mapa[filas][columnas] = {
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-    {1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1},
-    {1,0,1,1,1,0,1,0,1,1,0,1,0,1,1,1,0,1,0,1},
-    {1,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1},
-    {1,0,1,0,1,1,1,1,0,1,0,1,1,1,0,1,1,1,0,1},
-    {1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,1},
-    {1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,0,1},
-    {1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,1},
-    {1,0,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,0,1},
-    {1,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,1},
-    {1,0,1,0,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1},
-    {1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1},
-    {1,1,1,1,1,1,0,1,1,1,1,1,1,1,0,1,1,1,1,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+        {1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1},
+        {1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,0,1},
+        {1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,0,1},
+        {1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,1},
+        {1,1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1,1},
+        {0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0}, 
+        {1,1,1,1,1,0,1,0,1,1,0,1,1,0,1,0,1,1,1,1,1}, 
+        {0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0}, 
+        {1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1},
+        {0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0},
+        {1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1},
+        {1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1},
+        {1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,0,1},
+        {1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1},
+        {1,1,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,1,1},
+        {1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,1},
+        {1,0,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,0,1},
+        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
     };
 
     int puntos[filas][columnas] = {};
@@ -139,16 +155,13 @@ void GameManager::run() {
             if (event.type == sf::Event::Closed)
                 window.close();
         }
-// ... dentro de while (window.isOpen()) ...
 
-    float deltaTime = clock.restart().asSeconds();
-    moveTimer += deltaTime;
+        float deltaTime = clock.restart().asSeconds();
+        moveTimer += deltaTime;
 
-    // AGREGA ESTA LÍNEA AQUÍ:
-    pacman.updateAnimation(); // <--- Esto hará que abra y cierre la boca siempre
+        pacman.updateAnimation(); 
 
-    if (moveTimer > moveDelay) {
-        // ... aquí sigue tu lógica de inputs y movimiento ...
+        if (moveTimer > moveDelay) {
             
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))  bufferP = {-1, 0};
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) bufferP = {1, 0};
@@ -160,6 +173,7 @@ void GameManager::run() {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) bufferG = {0, -1};
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) bufferG = {0, 1};
 
+            // Aquí se pasan las funciones corregidas que aceptan mapa[21][21]
             moverPorBuffer(pacman.getSprite(), dirP, bufferP, tileSize, mapa, pacman.getVelocidad());
             moverPorBuffer(ghost.getSprite(), dirG, bufferG, tileSize, mapa, ghost.getVelocidad());
 
@@ -169,24 +183,29 @@ void GameManager::run() {
             sf::Vector2f posP = pacman.getPosition();
             int filaP = posP.y / tileSize;
             int colP = posP.x / tileSize;
-            if (puntos[filaP][colP] == 1) {
-                puntos[filaP][colP] = 0;
-                pacman.sumarPunto();
-                sonidoEat.play();
+            // Verificar limites antes de acceder al array
+            if (filaP >= 0 && filaP < filas && colP >= 0 && colP < columnas) {
+                if (puntos[filaP][colP] == 1) {
+                    puntos[filaP][colP] = 0;
+                    pacman.sumarPunto();
+                    sonidoEat.play();
+                }
+                if (frutas[filaP][colP] == 1) { frutas[filaP][colP] = 0; pacman.agregarVida(); }
+                if (frutas[filaP][colP] == 2) { frutas[filaP][colP] = 0; pacman.activarVelocidad(); }
             }
-            if (frutas[filaP][colP] == 1) { frutas[filaP][colP] = 0; pacman.agregarVida(); }
-            if (frutas[filaP][colP] == 2) { frutas[filaP][colP] = 0; pacman.activarVelocidad(); }
 
             sf::Vector2f posG = ghost.getPosition();
             int filaG = posG.y / tileSize;
             int colG = posG.x / tileSize;
-            if (puntos[filaG][colG] == 1) {
-                puntos[filaG][colG] = 0;
-                ghost.sumarPunto();
-                sonidoEat.play();
+            if (filaG >= 0 && filaG < filas && colG >= 0 && colG < columnas) {
+                if (puntos[filaG][colG] == 1) {
+                    puntos[filaG][colG] = 0;
+                    ghost.sumarPunto();
+                    sonidoEat.play();
+                }
+                if (frutas[filaG][colG] == 1) { frutas[filaG][colG] = 0; ghost.agregarVida(); }
+                if (frutas[filaG][colG] == 2) { frutas[filaG][colG] = 0; ghost.activarVelocidad(); }
             }
-            if (frutas[filaG][colG] == 1) { frutas[filaG][colG] = 0; ghost.agregarVida(); }
-            if (frutas[filaG][colG] == 2) { frutas[filaG][colG] = 0; ghost.activarVelocidad(); }
 
             if (pacman.getBounds().intersects(ghost.getBounds())) {
                 sf::Text resultado;
