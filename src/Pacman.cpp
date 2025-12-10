@@ -1,63 +1,46 @@
-#include "../include/pacman.h"  // Asegúrate de incluir el archivo de cabecera correcto
+#include "../include/pacman.h" 
 
-// Constructor de Pacman
 Pacman::Pacman() {
     texture.loadFromFile("assets/images/pacman.png");
+    textureClosed.loadFromFile("assets/images/pacman2.png"); // Cargar la segunda imagen
+
     sprite.setTexture(texture);
+    
+    // --- CORRECCIÓN CRÍTICA: Quitamos setOrigin y el desfase de posición ---
     float escala = (32.0f * 0.8f) / texture.getSize().x;
     sprite.setScale(escala, escala);
-    sprite.setOrigin(0, 0);
-    sprite.setPosition(1 * 32, 1 * 32);
-    speed = 32.0f / 8.0f;
+    
+    // Posición exacta en la rejilla (sin sumar 16)
+    sprite.setPosition(1 * 32, 1 * 32); 
+
+    speed = 32.0f / 8.0f; // Ajusta esto si sientes que va muy lento o rápido
+    isMouthOpen = true;
 }
 
-// Función getPosition (solo una vez definida)
-sf::Vector2f Pacman::getPosition() const {
-    return sprite.getPosition();
-}
-
-// Función draw (solo una vez definida)
-void Pacman::draw(sf::RenderWindow& window) {
-    window.draw(sprite);
-}
-
-// Función move para Pacman
-void Pacman::move(int dx, int dy, int mapa[15][20], int tileSize) {
-    float nextX = sprite.getPosition().x + dx * getVelocidad();
-    float nextY = sprite.getPosition().y + dy * getVelocidad();
-    int fila = nextY / tileSize;
-    int col = nextX / tileSize;
-
-    if (fila >= 0 && fila < 15 && col >= 0 && col < 20 && mapa[fila][col] == 0)
-        sprite.move(dx * getVelocidad(), dy * getVelocidad());
-
-    if (animClock.getElapsedTime().asMilliseconds() > 150) {
-        frame = (frame + 1) % 2;
+// Esta es la nueva función que llamaremos desde el juego
+void Pacman::updateAnimation() {
+    if (animClock.getElapsedTime().asMilliseconds() > 100) { 
+        if (isMouthOpen) {
+            sprite.setTexture(textureClosed);
+            isMouthOpen = false;
+        } else {
+            sprite.setTexture(texture);
+            isMouthOpen = true;
+        }
         animClock.restart();
     }
-
-    // Rotar Pacman según la dirección
-    if (dx == -1) sprite.setRotation(180);
-    else if (dx == 1) sprite.setRotation(0);
-    else if (dy == -1) sprite.setRotation(270);
-    else if (dy == 1) sprite.setRotation(90);
 }
 
-// Función para obtener los límites del sprite de Pacman (usado para colisiones)
-sf::FloatRect Pacman::getBounds() const {
-    return sprite.getGlobalBounds();
-}
+sf::Vector2f Pacman::getPosition() const { return sprite.getPosition(); }
 
-// Incrementar puntos de Pacman
-void Pacman::sumarPunto() {
-    puntos++;
-}
+void Pacman::draw(sf::RenderWindow& window) { window.draw(sprite); }
 
-// Agregar vida a Pacman
-void Pacman::agregarVida() {
-    vidas++;
-}
+sf::FloatRect Pacman::getBounds() const { return sprite.getGlobalBounds(); }
 
+void Pacman::sumarPunto() { puntos++; }
+void Pacman::agregarVida() { vidas++; }
+int Pacman::getPuntos() const { return puntos; }
+int Pacman::getVidas() const { return vidas; }
 
 void Pacman::activarVelocidad() {
     velocidadExtra = true;
@@ -69,14 +52,6 @@ void Pacman::actualizarVelocidad() {
         velocidadExtra = false;
 }
 
-int Pacman::getPuntos() const {
-    return puntos;
-}
-
-int Pacman::getVidas() const {
-    return vidas;
-}
-
 float Pacman::getVelocidad() const {
-    return velocidadExtra ? speed * 1.0f : speed;
+    return velocidadExtra ? speed * 1.5f : speed;
 }

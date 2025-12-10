@@ -1,32 +1,42 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
 
 class Pacman {
 private:
     sf::Sprite sprite;
-    sf::Texture texture;
-    float speed;
-    int frame = 0;
-    sf::Clock animClock;
+    sf::Texture texture;        // Boca abierta
+    sf::Texture textureClosed;  // Boca cerrada
+    bool isMouthOpen;           
+    sf::Clock animClock;        
 
     int puntos = 0;
-    int vidas = 1;
+    int vidas = 3;
+    float speed;
+    
     bool velocidadExtra = false;
     sf::Clock velocidadTimer;
 
 public:
     Pacman();
-    void move(int dx, int dy, int mapa[15][20], int tileSize);
-    void draw(sf::RenderWindow& window);
-    sf::FloatRect getBounds() const;
     sf::Vector2f getPosition() const;
-    sf::Sprite& getSprite(); 
+    void draw(sf::RenderWindow& window);
 
+    // La firma coincide exactamente con el .cpp (importante el array mapa[15][20])
+    void move(int dx, int dy, int mapa[15][20], int tileSize);
+
+    // Función para la animación
+    void updateAnimation(); 
+
+    // Definición "inline" para evitar errores del Linker
+    sf::Sprite& getSprite() { return sprite; } 
+    
+    sf::FloatRect getBounds() const;
+    
     void sumarPunto();
     void agregarVida();
     void activarVelocidad();
     void actualizarVelocidad();
+    
     int getPuntos() const;
     int getVidas() const;
     float getVelocidad() const;

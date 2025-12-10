@@ -1,4 +1,4 @@
-// === juego.cpp ===
+// === src/juego.cpp ===
 #include "../include/ghost.h" 
 #include "../include/pacman.h"
 #include "../include/Juego.h"
@@ -31,11 +31,12 @@ void moverPorBuffer(sf::Sprite& sprite, Direccion& actual, Direccion& buffer, in
     sprite.move(actual.dx * velocidad, actual.dy * velocidad);
 }
 
-sf::Sprite& Pacman::getSprite() { return sprite; }
-sf::Sprite& Ghost::getSprite() { return sprite; }
+//sf::Sprite& Pacman::getSprite() { return sprite; }
+//sf::Sprite& Ghost::getSprite() { return sprite; }
 
 void GameManager::run() {
     sf::RenderWindow window(sf::VideoMode(640, 480), "Pakman");
+    window.setFramerateLimit(60);
 
     // Pantalla de inicio
     sf::Texture inicioTexture;
@@ -128,50 +129,89 @@ void GameManager::run() {
     Direccion dirP, bufferP;
     Direccion dirG, bufferG;
 
+    sf::Clock clock;       
+    float moveTimer = 0.0f;
+    float moveDelay = 0.05f; 
+
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
         }
+// ... dentro de while (window.isOpen()) ...
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))  bufferP = {-1, 0};
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) bufferP = {1, 0};
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))    bufferP = {0, -1};
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))  bufferP = {0, 1};
+    float deltaTime = clock.restart().asSeconds();
+    moveTimer += deltaTime;
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) bufferG = {-1, 0};
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) bufferG = {1, 0};
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) bufferG = {0, -1};
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) bufferG = {0, 1};
+    // AGREGA ESTA LÍNEA AQUÍ:
+    pacman.updateAnimation(); // <--- Esto hará que abra y cierre la boca siempre
 
-        moverPorBuffer(pacman.getSprite(), dirP, bufferP, tileSize, mapa, pacman.getVelocidad());
-        moverPorBuffer(ghost.getSprite(), dirG, bufferG, tileSize, mapa, ghost.getVelocidad());
+    if (moveTimer > moveDelay) {
+        // ... aquí sigue tu lógica de inputs y movimiento ...
+            
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))  bufferP = {-1, 0};
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) bufferP = {1, 0};
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))    bufferP = {0, -1};
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))  bufferP = {0, 1};
 
-        pacman.actualizarVelocidad();
-        ghost.actualizarVelocidad();
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) bufferG = {-1, 0};
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) bufferG = {1, 0};
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) bufferG = {0, -1};
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) bufferG = {0, 1};
 
-        sf::Vector2f posP = pacman.getPosition();
-        int filaP = posP.y / tileSize;
-        int colP = posP.x / tileSize;
-        if (puntos[filaP][colP] == 1) {
-            puntos[filaP][colP] = 0;
-            pacman.sumarPunto();
-            sonidoEat.play();
+            moverPorBuffer(pacman.getSprite(), dirP, bufferP, tileSize, mapa, pacman.getVelocidad());
+            moverPorBuffer(ghost.getSprite(), dirG, bufferG, tileSize, mapa, ghost.getVelocidad());
+
+            pacman.actualizarVelocidad();
+            ghost.actualizarVelocidad();
+
+            sf::Vector2f posP = pacman.getPosition();
+            int filaP = posP.y / tileSize;
+            int colP = posP.x / tileSize;
+            if (puntos[filaP][colP] == 1) {
+                puntos[filaP][colP] = 0;
+                pacman.sumarPunto();
+                sonidoEat.play();
+            }
+            if (frutas[filaP][colP] == 1) { frutas[filaP][colP] = 0; pacman.agregarVida(); }
+            if (frutas[filaP][colP] == 2) { frutas[filaP][colP] = 0; pacman.activarVelocidad(); }
+
+            sf::Vector2f posG = ghost.getPosition();
+            int filaG = posG.y / tileSize;
+            int colG = posG.x / tileSize;
+            if (puntos[filaG][colG] == 1) {
+                puntos[filaG][colG] = 0;
+                ghost.sumarPunto();
+                sonidoEat.play();
+            }
+            if (frutas[filaG][colG] == 1) { frutas[filaG][colG] = 0; ghost.agregarVida(); }
+            if (frutas[filaG][colG] == 2) { frutas[filaG][colG] = 0; ghost.activarVelocidad(); }
+
+            if (pacman.getBounds().intersects(ghost.getBounds())) {
+                sf::Text resultado;
+                resultado.setFont(font);
+                resultado.setCharacterSize(40);
+                resultado.setPosition(120, 200);
+                
+                if (pacman.getPuntos() >= ghost.getPuntos()) {
+                    resultado.setString("¡Pacman gana!");
+                    resultado.setFillColor(sf::Color::Yellow);
+                } else {
+                    resultado.setString("¡Ghost gana!");
+                    resultado.setFillColor(sf::Color::Red);
+                }
+                window.clear();
+                window.draw(fondo);
+                window.draw(resultado);
+                window.display();
+                sf::sleep(sf::seconds(2));
+                window.close();
+                break;
+            }
+
+            moveTimer = 0;
         }
-        if (frutas[filaP][colP] == 1) { frutas[filaP][colP] = 0; pacman.agregarVida(); }
-        if (frutas[filaP][colP] == 2) { frutas[filaP][colP] = 0; pacman.activarVelocidad(); }
-
-        sf::Vector2f posG = ghost.getPosition();
-        int filaG = posG.y / tileSize;
-        int colG = posG.x / tileSize;
-        if (puntos[filaG][colG] == 1) {
-            puntos[filaG][colG] = 0;
-            ghost.sumarPunto();
-            sonidoEat.play();
-        }
-        if (frutas[filaG][colG] == 1) { frutas[filaG][colG] = 0; ghost.agregarVida(); }
-        if (frutas[filaG][colG] == 2) { frutas[filaG][colG] = 0; ghost.activarVelocidad(); }
 
         window.clear();
         window.draw(fondo);
@@ -207,29 +247,6 @@ void GameManager::run() {
 
         pacman.draw(window);
         ghost.draw(window);
-
-        // Lógica de victoria/derrota por colisión
-        if (pacman.getBounds().intersects(ghost.getBounds())) {
-            sf::Text resultado;
-            resultado.setFont(font);
-            resultado.setCharacterSize(40);
-            resultado.setPosition(120, 200);
-            // Puedes personalizar la lógica de victoria aquí
-            if (pacman.getPuntos() >= ghost.getPuntos()) {
-                resultado.setString("¡Pacman gana!");
-                resultado.setFillColor(sf::Color::Yellow);
-            } else {
-                resultado.setString("¡Ghost gana!");
-                resultado.setFillColor(sf::Color::Red);
-            }
-            window.clear();
-            window.draw(fondo);
-            window.draw(resultado);
-            window.display();
-            sf::sleep(sf::seconds(2));
-            window.close();
-            break;
-        }
 
         window.display();
     }
