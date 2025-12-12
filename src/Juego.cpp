@@ -57,7 +57,7 @@ float obtenerDistancia(sf::Vector2f p1, sf::Vector2f p2) {
 
 void GameManager::run() {
     const int filas = 21, columnas = 21, tileSize = 32;
-    sf::RenderWindow window(sf::VideoMode(columnas * tileSize, filas * tileSize), "PACMAN: TERROR EDITION");
+    sf::RenderWindow window(sf::VideoMode(columnas * tileSize, filas * tileSize), "PACMAN");
     window.setFramerateLimit(60);
 
     // --- CARGA DE IMÁGENES ---
