@@ -1,37 +1,60 @@
-# PacMan
-## Description
-PacMan is a two-player game inspired by Pacman. One player controls Pacman, while the other controls the ghost. The goal is to avoid collision or catch Pacman.
+# PAC-MAN
+## 📝 Descripción del Proyecto
+Un remake competitivo basado del clásico arcade. Este proyecto reimagina el juego original transformándolo en una experiencia multijugador 1vs1 con estética "Cyberpunk" y mecánicas de Survival Horror.
+A diferencia del original, aquí no juegas contra la IA: un jugador controla a Pac-Man y otro al Fantasma en una carrera tensa por el puntaje dentro de un laberinto con visibilidad limitada.
 
-## How to Play
-- Player 1 (Pacman): Use `W`, `A`, `S`, `D` keys to move.
-- Player 2 (Ghost): Use `I`, `J`, `K`, `L` keys to move.
-- Press `Q` to quit the game.
+### 🎯 Objetivo del Juego
 
-## Requirements
-- Msys2
-- g++ compiler
+El juego es una competencia de **supervivencia y puntaje**:
 
-## Build and Run
-1. Install Msys2 and ensure `g++` is available.
-2. Run `make` to build the game.
-3. Execute `bin/game` to start playing.
+* **Como Pac-Man:** Tu objetivo es comer la mayor cantidad de puntos posible y sobrevivir hasta que el mapa se vacíe.
+* **Como Ghost:** Tu objetivo es cazar a Pac-Man para quitarle sus vidas o comer más puntos que él para ganar por puntuación.
 
-## Controls
-- Pacman: `W`, `A`, `S`, `D`
-- Ghost: `I`, `J`, `K`, `L`
+¡El juego termina cuando Pac-Man pierde todas sus vidas o cuando se acaban los puntos del mapa!
 
-## License
-This project is open-source and free to use.
+### 🎮 Controles
 
-## How to play it
-![Pantalla de inicio](assets/images/imagen_readme.png)
+El juego está diseñado para jugarse en un mismo teclado (Multijugador Local):
 
-This is the game's home screen.
-With a tab of the space bar the game starts!
+**🟡 Jugador 1: Pac-Man**
+- **Flechas (🡡 🡣 0 2):** Moverse por el laberinto.
+- **Barra Espaciadora:** Activar **Sprint (Dash)** (Velocidad x2 por 2 segundos).
 
-![Gameplay](assets/images/imagen_readme2.png)
+**🔴 Jugador 2: Ghost**
+- **W / A / S / D:** Moverse por el laberinto.
+- **Enter:** Activar **Invisibilidad** (Te vuelves semi-transparente por 3 segundos).
 
-This is the maze of our fun game, the one who collides with the other wins.
+### ⚙️ Mecánicas
 
+1.  **Niebla de Guerra (Terror):** El mapa está sumido en la oscuridad. Los jugadores solo tienen un pequeño radio de visión a su alrededor, lo que obliga a jugar con cautela y escuchar los movimientos.
+2.  **Sistema de Habilidades:** Cada personaje tiene una habilidad activa con tiempo de enfriamiento (Cooldown) para escapar o emboscar.
+3.  **Competencia de Puntos:** Tanto Pac-Man como el Ghost pueden comer los puntos del mapa. Al final, si Pac-Man sobrevive, gana quien haya comido más.
 
-Good Luck!!
+### 🏆 Características
+
+- 🎨 **Estética:** Gráficos personalizados con iluminación y bordes brillantes.
+- 👥 **Multijugador Local:** 1 vs 1 en tiempo real.
+- 🔊 **Audio Inmersivo:** Efectos de sonido clásicos y música de inicio.
+- 🖼️ **Pantallas de Victoria:** Arte personalizado que se muestra al ganar (Pac-Man o Ghost).
+- 💓 **Sistema de Vidas:** Rondas continuas hasta que Pac-Man pierde todas sus vidas.
+
+### 👥 Equipo
+
+- **Lider**: Luis Fernando Gomez Barajas (FerB0o-GitHub)
+- **ntgrante**: Francisco David Rojas Reynoso ()
+
+### 🛠️ Tecnologías
+
+- **Lenguaje**: C++
+- **Librería Gráfica**: SFML 2.6.1 (Simple and Fast Multimedia Library)
+- **Compilador**: MinGW-w64 (g++)
+- **IDE**: Visual Studio Code
+
+### 📜 Créditos
+**Colaboracion**: Comunidad de CETUS, profesores y colaboradores del proyecto.
+- **Fuente**: "Minecraft Font" (Uso libre para proyectos educativos).
+- **Sprites**: Assets clásicos de Pac-Man modificados para estilo neón.
+- **Efectos de Sonido**: Librería de sonidos retro open source.
+- **Inspiración**: Basado en el Pac-Man original de Namco, con modificaciones de gameplay propias.
+
+### GOOD LUCK
