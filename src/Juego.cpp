@@ -6,7 +6,7 @@
 #include <SFML/Audio.hpp>
 #include <iostream>
 #include <string>
-#include <cmath> // Necesario para calculos de movimiento y niebla
+#include <cmath> 
 
 // Funciones de ayuda
 bool puedeMover(float x, float y, int dx, int dy, int tileSize, const int mapa[21][21]) {
@@ -19,26 +19,18 @@ bool estaCentradoEnTile(sf::Vector2f pos, int tileSize) {
     return static_cast<int>(pos.x) % tileSize == 0 && static_cast<int>(pos.y) % tileSize == 0;
 }
 
-// --- FUNCIÓN DE MOVIMIENTO CORREGIDA (ANTI-BUG DE VELOCIDAD) ---
 void moverPorBuffer(sf::Sprite& sprite, Direccion& actual, Direccion& buffer, int tileSize, const int mapa[21][21], float velocidad) {
     sf::Vector2f pos = sprite.getPosition();
-
     int x = static_cast<int>(std::round(pos.x));
     int y = static_cast<int>(std::round(pos.y));
     bool centrado = (x % tileSize == 0 && y % tileSize == 0);
+
     if (centrado) {
-        // Corregir posición exacta para evitar decimales
         sprite.setPosition(x, y);
-        if (puedeMover(x, y, buffer.dx, buffer.dy, tileSize, mapa)) {
-            actual = buffer;
-        }
-        // Verificar si chocamos de frente con la dirección actual
-        if (!puedeMover(x, y, actual.dx, actual.dy, tileSize, mapa)) {
-            actual = {0, 0}; // Detenerse
-        }
+        if (puedeMover(x, y, buffer.dx, buffer.dy, tileSize, mapa)) actual = buffer;
+        if (!puedeMover(x, y, actual.dx, actual.dy, tileSize, mapa)) actual = {0, 0};
     }
 
-    // 3. Movimiento Físico
     if (actual.dx != 0 || actual.dy != 0) {
         float distParaLlegar = 0;
         if (actual.dx > 0) distParaLlegar = tileSize - (x % tileSize);
@@ -46,22 +38,14 @@ void moverPorBuffer(sf::Sprite& sprite, Direccion& actual, Direccion& buffer, in
         else if (actual.dy > 0) distParaLlegar = tileSize - (y % tileSize);
         else if (actual.dy < 0) distParaLlegar = (y % tileSize == 0 ? tileSize : y % tileSize);
 
-        // Si la velocidad es mayor a la distancia, nos pasaríamos (Efecto Tunel)
         if (velocidad > distParaLlegar) {
-            sprite.move(actual.dx * distParaLlegar, actual.dy * distParaLlegar);       
+            sprite.move(actual.dx * distParaLlegar, actual.dy * distParaLlegar);
             float sobrante = velocidad - distParaLlegar;
             sf::Vector2f nuevaPos = sprite.getPosition();
-            if (puedeMover(nuevaPos.x, nuevaPos.y, buffer.dx, buffer.dy, tileSize, mapa)) {
-                actual = buffer;
-            }
-            if (!puedeMover(nuevaPos.x, nuevaPos.y, actual.dx, actual.dy, tileSize, mapa)) {
-                actual = {0, 0}; // Choca, se detiene, sobrante se pierde
-            } else {
-                // D) Mover el resto en la dirección (posiblemente nueva)
-                sprite.move(actual.dx * sobrante, actual.dy * sobrante);
-            }
+            if (puedeMover(nuevaPos.x, nuevaPos.y, buffer.dx, buffer.dy, tileSize, mapa)) actual = buffer;
+            if (!puedeMover(nuevaPos.x, nuevaPos.y, actual.dx, actual.dy, tileSize, mapa)) actual = {0, 0};
+            else sprite.move(actual.dx * sobrante, actual.dy * sobrante);
         } else {
-            // Movimiento normal
             sprite.move(actual.dx * velocidad, actual.dy * velocidad);
         }
     }
@@ -76,21 +60,38 @@ void GameManager::run() {
     sf::RenderWindow window(sf::VideoMode(columnas * tileSize, filas * tileSize), "PACMAN: TERROR EDITION");
     window.setFramerateLimit(60);
 
-    // --- ASSETS ---para cargar fuente
-    sf::Texture inicioTexture, fondoTexture;
-    if (!inicioTexture.loadFromFile("assets/images/inicio.png")) std::cerr << "Error loading inicio" << std::endl;
-    if (!fondoTexture.loadFromFile("assets/images/background.png")) std::cerr << "Error loading bg" << std::endl;
+    // --- CARGA DE IMÁGENES ---
+    sf::Texture inicioTexture, fondoTexture, winPacmanTex, winGhostTex;
     
-    sf::Sprite inicioSprite(inicioTexture), fondo(fondoTexture);
-    inicioSprite.setScale((float)(columnas * tileSize) / inicioTexture.getSize().x, (float)(filas * tileSize) / inicioTexture.getSize().y);
-    fondo.setScale((float)(columnas * tileSize) / fondoTexture.getSize().x, (float)(filas * tileSize) / fondoTexture.getSize().y);
-    fondo.setColor(sf::Color(100, 100, 100)); 
+    if (!inicioTexture.loadFromFile("assets/images/inicio.png")) std::cerr << "Error inicio" << std::endl;
+    if (!fondoTexture.loadFromFile("assets/images/background.png")) std::cerr << "Error bg" << std::endl;
+    
+    // Cargar imágenes de victoria
+    if (!winPacmanTex.loadFromFile("assets/images/win_pacman.png")) std::cerr << "Error win_pacman" << std::endl;
+    if (!winGhostTex.loadFromFile("assets/images/win_ghost.png")) std::cerr << "Error win_ghost" << std::endl;
 
+    // Configurar Sprites
+    sf::Sprite inicioSprite(inicioTexture), fondo(fondoTexture);
+    sf::Sprite spriteWinPacman(winPacmanTex), spriteWinGhost(winGhostTex);
+
+    // Escalar imágenes al tamaño de la ventana
+    float scaleX = (float)(columnas * tileSize);
+    float scaleY = (float)(filas * tileSize);
+    
+    inicioSprite.setScale(scaleX / inicioTexture.getSize().x, scaleY / inicioTexture.getSize().y);
+    fondo.setScale(scaleX / fondoTexture.getSize().x, scaleY / fondoTexture.getSize().y);
+    fondo.setColor(sf::Color(100, 100, 100)); 
+    
+    spriteWinPacman.setScale(scaleX / winPacmanTex.getSize().x, scaleY / winPacmanTex.getSize().y);
+    spriteWinGhost.setScale(scaleX / winGhostTex.getSize().x, scaleY / winGhostTex.getSize().y);
+
+    // --- SONIDOS ---
     sf::SoundBuffer inicioBuffer, eatBuffer;
     inicioBuffer.loadFromFile("assets/music/inicio.ogg");
     eatBuffer.loadFromFile("assets/music/eating.ogg");
     sf::Sound inicioSound(inicioBuffer), sonidoEat(eatBuffer);
 
+    // --- TEXTOS ---
     sf::Font font;
     font.loadFromFile("assets/fonts/Minecraft.ttf");
     
@@ -121,6 +122,7 @@ void GameManager::run() {
     sf::RectangleShape nieblaShape(sf::Vector2f(tileSize, tileSize));
     nieblaShape.setFillColor(sf::Color::Black);
 
+    // Pantalla Inicio
     inicioSound.setLoop(true); inicioSound.play();
     bool juegoIniciado = false;
     while (window.isOpen() && !juegoIniciado) {
@@ -133,7 +135,8 @@ void GameManager::run() {
     }
     inicioSound.stop();
 
-    int mapa[filas][columnas] = {//matrz del labernto
+    // MAPA
+    int mapa[filas][columnas] = {
         {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
         {1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1},
         {1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,0,1},
@@ -175,9 +178,8 @@ void GameManager::run() {
     float moveTimer = 0.0f;
     float moveDelay = 0.05f;
 
-    // --- VARIABLES JUEGO ---
     sf::Clock cicloNiebla;
-    bool hayNiebla = true; // Empieza con niebla
+    bool hayNiebla = true; 
     float tiempoLuz = 10.0f;
     float tiempoOscuridad = 5.0f;
 
@@ -195,20 +197,14 @@ void GameManager::run() {
             if (event.type == sf::Event::Closed) window.close();
             
             if (event.type == sf::Event::KeyPressed) {
-                // Dash
                 if (event.key.code == sf::Keyboard::Space) {
                     if (cooldownDashP.getElapsedTime().asSeconds() > 5.0f) {
-                        dashActivo = true;
-                        duracionDashP.restart();
-                        cooldownDashP.restart();
+                        dashActivo = true; duracionDashP.restart(); cooldownDashP.restart();
                     }
                 }
-                // Invisibilidad
                 if (event.key.code == sf::Keyboard::Enter) {
                     if (cooldownInvisG.getElapsedTime().asSeconds() > 10.0f) {
-                        invisibleActivo = true;
-                        duracionInvisG.restart();
-                        cooldownInvisG.restart();
+                        invisibleActivo = true; duracionInvisG.restart(); cooldownInvisG.restart();
                         ghost.getSprite().setColor(sf::Color(255, 255, 255, 50));
                     }
                 }
@@ -219,18 +215,11 @@ void GameManager::run() {
         moveTimer += deltaTime;
         pacman.updateAnimation(); 
 
-        // Lógica Niebla
         float tiempoCiclo = cicloNiebla.getElapsedTime().asSeconds();
-        if (tiempoCiclo > tiempoLuz && tiempoCiclo < (tiempoLuz + tiempoOscuridad)) {
-            hayNiebla = true;
-        } else if (tiempoCiclo >= (tiempoLuz + tiempoOscuridad)) {
-            cicloNiebla.restart();
-            hayNiebla = false;
-        } else {
-            hayNiebla = false;
-        }
+        if (tiempoCiclo > tiempoLuz && tiempoCiclo < (tiempoLuz + tiempoOscuridad)) hayNiebla = true;
+        else if (tiempoCiclo >= (tiempoLuz + tiempoOscuridad)) { cicloNiebla.restart(); hayNiebla = false; }
+        else hayNiebla = false;
 
-        // Habilidades
         float velocidadP = pacman.getVelocidad();
         if (dashActivo) {
             if (duracionDashP.getElapsedTime().asSeconds() < 2.0f) velocidadP *= 2.0f;
@@ -238,13 +227,11 @@ void GameManager::run() {
         }
         if (invisibleActivo) {
             if (duracionInvisG.getElapsedTime().asSeconds() > 3.0f) {
-                invisibleActivo = false;
-                ghost.getSprite().setColor(sf::Color(255, 255, 255, 255));
+                invisibleActivo = false; ghost.getSprite().setColor(sf::Color(255, 255, 255, 255));
             }
         }
 
         if (moveTimer > moveDelay) {
-            // Inputs
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))  bufferP = {-1, 0};
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) bufferP = {1, 0};
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))    bufferP = {0, -1};
@@ -257,10 +244,8 @@ void GameManager::run() {
 
             moverPorBuffer(pacman.getSprite(), dirP, bufferP, tileSize, mapa, velocidadP);
             moverPorBuffer(ghost.getSprite(), dirG, bufferG, tileSize, mapa, ghost.getVelocidad());
-            
             pacman.actualizarVelocidad(); ghost.actualizarVelocidad();
 
-            // Comer
             sf::Vector2f posP = pacman.getPosition();
             int filaP = posP.y / tileSize; int colP = posP.x / tileSize;
             if (filaP >= 0 && filaP < filas && colP >= 0 && colP < columnas) {
@@ -274,24 +259,34 @@ void GameManager::run() {
                 if (puntos[filaG][colG] == 1) { puntos[filaG][colG] = 0; ghost.sumarPunto(); sonidoEat.play(); puntosRestantes--; }
             }
 
-            // Victoria
+            // VICTORIA
             if (puntosRestantes <= 0) {
-                 sf::Text res; res.setFont(font); res.setCharacterSize(50); res.setPosition(150, 300);
-                 if (pacman.getPuntos() > ghost.getPuntos()) { res.setString("PACMAN GANA!"); res.setFillColor(sf::Color::Yellow); } 
-                 else if (ghost.getPuntos() > pacman.getPuntos()) { res.setString("GHOST GANA!"); res.setFillColor(sf::Color::Red); } 
-                 else { res.setString("EMPATE!"); res.setFillColor(sf::Color::White); }
-                 window.clear(); window.draw(fondo); window.draw(res); window.display();
-                 sf::sleep(sf::seconds(5)); window.close(); break;
+                 window.clear();
+                 
+                 if (pacman.getPuntos() > ghost.getPuntos()) {
+                     window.draw(spriteWinPacman);
+                 } else {
+                     window.draw(spriteWinGhost);
+                 }
+                 window.display();
+                 sf::sleep(sf::seconds(5));
+                 window.close();
+                 break;
             }
 
-            // Colisión
+            // --- VICTORIA POR MUERTE 
             if (pacman.getBounds().intersects(ghost.getBounds())) {
                 pacman.restarVida();
                 sf::Text aviso; aviso.setFont(font); aviso.setCharacterSize(50);
+                
                 if (pacman.getVidas() <= 0) {
-                    aviso.setString("GHOST GANA"); aviso.setFillColor(sf::Color::Red); aviso.setPosition(200, 300);
-                    window.clear(); window.draw(fondo); window.draw(aviso); window.display();
-                    sf::sleep(sf::seconds(3)); window.close(); break;
+                    
+                    window.clear();
+                    window.draw(spriteWinGhost);
+                    window.display();
+                    sf::sleep(sf::seconds(5));
+                    window.close();
+                    break;
                 } else {
                     aviso.setString("ATRAPADO!"); aviso.setFillColor(sf::Color::Yellow); aviso.setPosition(220, 300);
                     window.clear(); window.draw(fondo); window.draw(aviso); window.display();
@@ -308,14 +303,10 @@ void GameManager::run() {
 
         for (int i = 0; i < filas; ++i) {
             for (int j = 0; j < columnas; ++j) {
-                
-                // --- VISIBILIDAD (NIEBLA) ---
                 bool visible = true;
                 if (hayNiebla) {
                     float distP = obtenerDistancia(sf::Vector2f(j*tileSize, i*tileSize), pacman.getPosition());
                     float distG = obtenerDistancia(sf::Vector2f(j*tileSize, i*tileSize), ghost.getPosition());
-                    
-                    // Aquí ajusté a 75 para que sea un circulo PEQUEÑO pero jugable
                     if (distP > 30 && distG > 30) visible = false;
                 }
 
