@@ -8,7 +8,7 @@ private:
     float speed;
 
     int puntos = 0;
-    int vidas = 3;
+    int vidas = 1;
     bool velocidadExtra = false;
     sf::Clock velocidadTimer;
 
