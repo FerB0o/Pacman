@@ -135,7 +135,7 @@ void GameManager::run() {
     }
     inicioSound.stop();
 
-    // MAPA
+    // matrz MAPA
     int mapa[filas][columnas] = {
         {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
         {1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1},
