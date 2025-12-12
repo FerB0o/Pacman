@@ -41,7 +41,7 @@ El juego está diseñado para jugarse en un mismo teclado (Multijugador Local):
 ### 👥 Equipo
 
 - **Lider**: Luis Fernando Gomez Barajas (FerB0o-GitHub)
-- **ntgrante**: Francisco David Rojas Reynoso ()
+- **ntgrante**: Francisco David Rojas Reynoso (FransciscoRojas24310424)
 
 ### 🛠️ Tecnologías
 
