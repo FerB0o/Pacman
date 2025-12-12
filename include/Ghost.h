@@ -8,7 +8,7 @@ private:
     float speed;
 
     int puntos = 0;
-    int vidas = 1;
+    int vidas = 3;
     bool velocidadExtra = false;
     sf::Clock velocidadTimer;
 
@@ -21,7 +21,7 @@ public:
     void draw(sf::RenderWindow& window);
     sf::FloatRect getBounds() const;
     sf::Vector2f getPosition() const;
-
+ 
     // --- CORRECCIÓN IMPORTANTE ---
     // Mantenemos la definición aquí (inline) para evitar el error de "undefined reference"
     sf::Sprite& getSprite() { return sprite; } 
@@ -34,4 +34,7 @@ public:
     int getPuntos() const;
     int getVidas() const;
     float getVelocidad() const;
+
+    // ...
+    void resetPosition(); // <--- NUEVA
 };

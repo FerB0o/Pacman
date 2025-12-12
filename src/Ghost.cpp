@@ -68,3 +68,10 @@ int Ghost::getVidas() const {
 float Ghost::getVelocidad() const {
     return velocidadExtra ? speed * 2.0f : speed;
 }
+
+void Ghost::resetPosition() {
+    // Coordenadas iniciales del Fantasma.
+    // Ajusta estos números a donde quieras que reaparezca.
+    // Ejemplo: Centro del mapa (aprox)
+    sprite.setPosition(320, 320);
+}

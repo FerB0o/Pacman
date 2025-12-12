@@ -55,3 +55,17 @@ void Pacman::actualizarVelocidad() {
 float Pacman::getVelocidad() const {
     return velocidadExtra ? speed * 1.5f : speed;
 }
+
+// src/pacman.cpp
+
+void Pacman::restarVida() {
+    if (vidas > 0) vidas--;
+}
+
+void Pacman::resetPosition() {
+    // Vuelve a la posición inicial (1, 1) en pixeles (32, 32)
+    sprite.setPosition(32, 32); 
+}
+    // Reiniciar animación boca abierta
+    // (Asegúrate de tener acceso a texture/textureClosed o variables necesarias si quieres resetear animación, 
+    // pero con moverlo basta por ahora).
