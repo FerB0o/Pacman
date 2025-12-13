@@ -15,7 +15,8 @@ El juego es una competencia de **supervivencia y puntaje**:
 ### 🎮 Controles
 
 El juego está diseñado para jugarse en un mismo teclado (Multijugador Local):
-
+**Star the game**
+Barra Espaciadora para iniciar juego
 **🟡 Jugador 1: Pac-Man**
 - **Flechas (🡡 🡣 0 2):** Moverse por el laberinto.
 - **Barra Espaciadora:** Activar **Sprint (Dash)** (Velocidad x2 por 2 segundos).
